@@ -35,7 +35,7 @@ class BadgeSelectType extends AbstractType
             $positions = null === $sport ? 'AutomaticBadgeType' : $sport;
             $class = 'AppBundle\\Form\\Type\\'.$positions;
 
-            $form->add('badge',new $class());
+            $form->add('badge',new $class(), array('allow_extra_fields' => true));
 
         };
 
@@ -46,18 +46,6 @@ class BadgeSelectType extends AbstractType
                 $data = $event->getData();
 
                 $formModifier($event->getForm(), $data);
-            }
-        );
-
-        $builder->addEventListener(
-            FormEvents::PRE_SUBMIT,
-            function (FormEvent $event) {
-                $data = $event->getData();
-                if ($data['type'] !== $data['badge_type']){
-                    unset($data['badge']);
-                    $data['badge_type'] = $data['type'];
-                }
-                $event->setData($data);
             }
         );
 
