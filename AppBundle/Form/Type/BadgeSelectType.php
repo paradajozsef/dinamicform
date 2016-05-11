@@ -25,8 +25,9 @@ class BadgeSelectType extends AbstractType
         $builder
             ->add('type', 'choice', array(
                 'choices' => array('AutomaticBadgeType' => 'auto', 'ManualBadgeType' => 'manual'),
-                'empty_data' => 1
+                'empty_data' => 'AutomaticBadgeType'
             ))
+            ->add('badge_type','hidden',array('data'=>'AutomaticBadgeType'))
             ->add('save', 'submit', array('label' => 'Create Task'));
 
 
@@ -35,6 +36,7 @@ class BadgeSelectType extends AbstractType
             $class = 'AppBundle\\Form\\Type\\'.$positions;
 
             $form->add('badge',new $class());
+
         };
 
         $builder->addEventListener(
@@ -47,14 +49,25 @@ class BadgeSelectType extends AbstractType
             }
         );
 
+        $builder->addEventListener(
+            FormEvents::PRE_SUBMIT,
+            function (FormEvent $event) {
+                $data = $event->getData();
+                if ($data['type'] !== $data['badge_type']){
+                    unset($data['badge']);
+                    $data['badge_type'] = $data['type'];
+                }
+                $event->setData($data);
+            }
+        );
+
         $builder->get('type')->addEventListener(
             FormEvents::POST_SUBMIT,
             function (FormEvent $event) use ($formModifier) {
                 // It's important here to fetch $event->getForm()->getData(), as
                 // $event->getData() will get you the client data (that is, the ID)
                 $sport = $event->getForm()->getData();
-dump($sport);
-               // die;
+
                 // since we've added the listener to the child, we'll have to pass on
                 // the parent to the callback functions!
                 $formModifier($event->getForm()->getParent(), $sport);
